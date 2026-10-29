@@ -1,7 +1,8 @@
 ---
 # Deploys BeforeYouGo to AKS and verifies it. Called by the Jenkinsfile:
 #   ansible-playbook -i ansible/inventory.ini ansible/deploy.yml \
-#     -e app_image=<acr>/beforeyougo:<tag> -e app_version=<tag>
+#     -e app_image=<acr>/beforeyougo:<tag> -e app_version=<tag> \
+#     -e dns_label=<label> -e app_host=<label>.<region>.cloudapp.azure.com
 # Secrets come from environment variables injected by Jenkins credentials:
 #   DB_PASSWORD, ADMIN_USERNAME, ADMIN_PASSWORD
 - name: Deploy BeforeYouGo to AKS
@@ -22,10 +23,12 @@
         that:
           - app_image is defined and app_image | length > 0
           - app_version is defined and app_version | length > 0
+          - dns_label is defined and dns_label | length > 0
+          - app_host is defined and app_host | length > 0
           - db_password | length > 0
           - admin_username | length > 0
           - admin_password | length > 0
-        fail_msg: "Pass app_image/app_version with -e and set DB_PASSWORD, ADMIN_USERNAME, ADMIN_PASSWORD"
+        fail_msg: "Pass app_image/app_version/dns_label/app_host with -e and set DB_PASSWORD, ADMIN_USERNAME, ADMIN_PASSWORD"
         quiet: true
 
     - name: Create namespace
@@ -88,10 +91,10 @@
         app_replicas: "{{ target_replicas }}"
       when: first_deploy
 
-    - name: Expose the app through an Azure Load Balancer
+    - name: Expose the app through an Azure Load Balancer with a DNS name
       kubernetes.core.k8s:
         state: present
-        src: "{{ manifests }}/app-service.yaml"
+        template: "{{ manifests }}/app-service.yaml"
 
     - name: Wait for the public IP
       kubernetes.core.k8s_info:
@@ -103,9 +106,12 @@
       retries: 30
       delay: 10
 
+    # Verify through the hostname, not the raw IP: some networks (e.g. campus
+    # firewalls) block unrated bare-IP URLs.
     - name: Remember the endpoint
       ansible.builtin.set_fact:
-        app_url: "http://{{ svc.resources[0].status.loadBalancer.ingress[0].ip }}"
+        app_ip: "{{ svc.resources[0].status.loadBalancer.ingress[0].ip }}"
+        app_url: "http://{{ app_host }}"
 
     - name: Verify the app reports ready through the load balancer
       ansible.builtin.uri:
@@ -127,4 +133,4 @@
 
     - name: Deployment summary
       ansible.builtin.debug:
-        msg: "BeforeYouGo build {{ app_version }} is live at {{ app_url }}"
+        msg: "BeforeYouGo build {{ app_version }} is live at {{ app_url }} (IP {{ app_ip }})"

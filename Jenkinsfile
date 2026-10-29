@@ -16,6 +16,8 @@ pipeline {
         ACR_NAME       = 'beforeyougoacr'              // change if your registry name differs
         ACR_SERVER     = "${ACR_NAME}.azurecr.io"
         IMAGE_REPO     = "${ACR_SERVER}/beforeyougo"
+        DNS_LABEL      = 'beforeyougo-cia2-pretham'     // must be unique in the region
+        APP_HOST       = "${DNS_LABEL}.koreacentral.cloudapp.azure.com"
     }
 
     triggers {
@@ -103,7 +105,9 @@ pipeline {
                     sh '''
                         ansible-playbook -i ansible/inventory.ini ansible/deploy.yml \
                           -e app_image=${IMAGE_REPO}:${IMAGE_TAG} \
-                          -e app_version=${IMAGE_TAG}
+                          -e app_version=${IMAGE_TAG} \
+                          -e dns_label=${DNS_LABEL} \
+                          -e app_host=${APP_HOST}
                     '''
                 }
             }
@@ -114,12 +118,11 @@ pipeline {
                 sh '''
                     kubectl -n beforeyougo rollout status deployment/beforeyougo --timeout=120s
                     kubectl -n beforeyougo get deployment,pods,svc -o wide
-                    APP_IP=$(kubectl -n beforeyougo get svc beforeyougo -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-                    echo "Health check: http://${APP_IP}/actuator/health"
-                    curl -fsS "http://${APP_IP}/actuator/health"
+                    echo "Health check: http://${APP_HOST}/actuator/health"
+                    curl -fsS "http://${APP_HOST}/actuator/health"
                     echo
-                    curl -fsS "http://${APP_IP}/" | grep -o "build ${IMAGE_TAG}"
-                    echo "Application URL: http://${APP_IP}/"
+                    curl -fsS "http://${APP_HOST}/" | grep -o "build ${IMAGE_TAG}"
+                    echo "Application URL: http://${APP_HOST}/"
                 '''
             }
         }

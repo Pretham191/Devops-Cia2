@@ -1,4 +1,6 @@
 # Public entry point: AKS creates an Azure Load Balancer with a public IP.
+# Rendered by Ansible: the DNS label gives the IP a hostname,
+# <dns_label>.<region>.cloudapp.azure.com, so nobody has to use a raw IP.
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,6 +8,8 @@ metadata:
   namespace: beforeyougo
   labels:
     app: beforeyougo
+  annotations:
+    service.beta.kubernetes.io/azure-dns-label-name: "{{ dns_label }}"
 spec:
   type: LoadBalancer
   selector:

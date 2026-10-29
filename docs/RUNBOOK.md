@@ -115,7 +115,7 @@ Click **Build Now** once (this registers the push trigger). The first run takes 
 
 When it's green, get the URL:
 ```bash
-kubectl -n beforeyougo get svc beforeyougo     # EXTERNAL-IP
+kubectl -n beforeyougo get svc beforeyougo     # EXTERNAL-IP (app is also at http://beforeyougo-cia2-pretham.koreacentral.cloudapp.azure.com/)
 kubectl -n beforeyougo get deploy,pods -o wide
 ```
 📸 Jenkins stage view (all green) · Test Result page · Coverage page
