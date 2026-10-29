@@ -1,0 +1,73 @@
+---
+# OPTIONAL — configuration management for the Jenkins build host (WSL Ubuntu).
+# Captures the toolchain as code so the host can be rebuilt the same way.
+# Safe to re-run (idempotent). Preview without changing anything:
+#   ansible-playbook -i ansible/inventory.ini ansible/setup-build-host.yml --check -K
+# Apply:
+#   ansible-playbook -i ansible/inventory.ini ansible/setup-build-host.yml -K
+- name: Configure the Jenkins build host
+  hosts: jenkins_host
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Install build, container and automation packages
+      ansible.builtin.apt:
+        name:
+          - openjdk-21-jdk
+          - maven
+          - git
+          - curl
+          - unzip
+          - docker.io
+          - docker-buildx
+          - python3-kubernetes
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Add the Jenkins LTS repository (2026 signing key)
+      ansible.builtin.deb822_repository:
+        name: jenkins
+        types: deb
+        uris: https://pkg.jenkins.io/debian-stable
+        suites: binary/
+        signed_by: https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+
+    - name: Install Jenkins
+      ansible.builtin.apt:
+        name: jenkins
+        state: present
+        update_cache: true
+
+    - name: Install the Azure CLI
+      ansible.builtin.shell: curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+      args:
+        creates: /usr/bin/az
+
+    - name: Install kubectl and kubelogin
+      ansible.builtin.command: az aks install-cli
+      args:
+        creates: /usr/local/bin/kubectl
+
+    - name: Let Jenkins use Docker
+      ansible.builtin.user:
+        name: jenkins
+        groups: docker
+        append: true
+      notify: Restart Jenkins
+
+    - name: Enable and start Docker and Jenkins
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      loop:
+        - docker
+        - jenkins
+
+  handlers:
+    - name: Restart Jenkins
+      ansible.builtin.systemd_service:
+        name: jenkins
+        state: restarted

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Guide editor')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<nav th:replace="~{admin/_nav :: nav}"></nav>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main class="wrap narrow admin">
+    <h1 th:text="${guideId == null} ? 'New guide' : 'Edit guide'">Edit guide</h1>
+
+    <p class="empty" th:if="${#lists.isEmpty(institutions)}">
+        Create an <a th:href="@{/admin/institutions/new}">institution</a> first.
+    </p>
+
+    <form class="card form" th:object="${guideForm}" method="post"
+          th:action="${guideId == null} ? @{/admin/guides} : @{/admin/guides/{id}(id=${guideId})}">
+
+        <label for="institutionId">Institution</label>
+        <select id="institutionId" th:field="*{institutionId}">
+            <option value="">Choose…</option>
+            <option th:each="i : ${institutions}" th:value="${i.id}" th:text="${i.name}">Institution</option>
+        </select>
+        <p class="field-error" th:if="${#fields.hasErrors('institutionId')}" th:errors="*{institutionId}">Error</p>
+
+        <label for="title">Title</label>
+        <input id="title" type="text" th:field="*{title}" maxlength="200">
+        <p class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Error</p>
+
+        <label for="purpose">Purpose of visit</label>
+        <textarea id="purpose" th:field="*{purpose}" rows="2"></textarea>
+        <p class="field-error" th:if="${#fields.hasErrors('purpose')}" th:errors="*{purpose}">Error</p>
+
+        <p class="hint">Lists: one item per line. Leave empty if not known — the page shows “Not available”.</p>
+
+        <label for="documentsText">Documents to bring</label>
+        <textarea id="documentsText" th:field="*{documentsText}" rows="5"></textarea>
+        <p class="field-error" th:if="${#fields.hasErrors('documentsText')}" th:errors="*{documentsText}">Error</p>
+
+        <label for="prerequisitesText">Prerequisites</label>
+        <textarea id="prerequisitesText" th:field="*{prerequisitesText}" rows="4"></textarea>
+        <p class="field-error" th:if="${#fields.hasErrors('prerequisitesText')}" th:errors="*{prerequisitesText}">Error</p>
+
+        <label for="stepsText">Steps on the day</label>
+        <textarea id="stepsText" th:field="*{stepsText}" rows="5"></textarea>
+        <p class="field-error" th:if="${#fields.hasErrors('stepsText')}" th:errors="*{stepsText}">Error</p>
+
+        <label for="commonMistakesText">Common mistakes / important instructions</label>
+        <textarea id="commonMistakesText" th:field="*{commonMistakesText}" rows="4"></textarea>
+        <p class="field-error" th:if="${#fields.hasErrors('commonMistakesText')}" th:errors="*{commonMistakesText}">Error</p>
+
+        <p class="hint">Fees, appointment and timings: leave empty unless confirmed. Visitors then see “Not confirmed — check with the institution”.</p>
+
+        <label for="fees">Fees</label>
+        <input id="fees" type="text" th:field="*{fees}" maxlength="500">
+        <p class="field-error" th:if="${#fields.hasErrors('fees')}" th:errors="*{fees}">Error</p>
+
+        <label for="appointmentInfo">Appointment info</label>
+        <input id="appointmentInfo" type="text" th:field="*{appointmentInfo}" maxlength="500">
+        <p class="field-error" th:if="${#fields.hasErrors('appointmentInfo')}" th:errors="*{appointmentInfo}">Error</p>
+
+        <label for="timings">Timings</label>
+        <input id="timings" type="text" th:field="*{timings}" maxlength="500">
+        <p class="field-error" th:if="${#fields.hasErrors('timings')}" th:errors="*{timings}">Error</p>
+
+        <button type="submit" th:text="${guideId == null} ? 'Create guide' : 'Save changes'">Save</button>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

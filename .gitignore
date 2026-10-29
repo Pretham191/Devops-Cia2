@@ -1,0 +1,30 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+bin/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / local env
+*.log
+.env
+
+# Secrets / cloud credentials (never commit)
+*.pem
+*.key
+kubeconfig
+.kube/
+.azure/
+credentials*.json

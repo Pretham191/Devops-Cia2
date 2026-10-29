@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${guide.title})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main class="wrap guide">
+    <p class="crumbs"><a th:href="@{/}">← All guides</a></p>
+
+    <header class="guide-head">
+        <p class="eyebrow" th:text="${guide.institution.category.label}">Government</p>
+        <h1 th:text="${guide.title}">Fresh passport application</h1>
+        <p class="institution" th:text="${guide.institution.name}">Passport Seva Kendra</p>
+    </header>
+
+    <!-- Freshness -->
+    <section class="freshness" aria-labelledby="freshness-h">
+        <h2 id="freshness-h" class="visually-hidden">How fresh is this information?</h2>
+        <div class="banner banner-warn" role="alert" th:if="${guide.flaggedOutdated}">
+            <strong>Reported as possibly changed.</strong>
+            A recent visitor reported that something here may no longer be accurate. Check with the institution before you go.
+        </div>
+        <dl class="fresh-grid">
+            <div>
+                <dt>Status</dt>
+                <dd><span class="status" th:classappend="${guide.verificationStatus.name() == 'OFFICIALLY_VERIFIED'} ? 'status-ok'"
+                          th:text="${guide.verificationStatus.label}">Unverified</span></dd>
+            </div>
+            <div>
+                <dt>Last verified</dt>
+                <dd th:text="${guide.lastVerifiedAt != null} ? ${#temporals.format(guide.lastVerifiedAt, 'd MMM yyyy')} : 'Never verified'">3 Oct 2026</dd>
+            </div>
+            <div>
+                <dt>Freshness</dt>
+                <dd><span th:replace="~{fragments/layout :: badge(${badge})}"></span></dd>
+            </div>
+        </dl>
+    </section>
+
+    <div class="guide-layout">
+        <div class="guide-main">
+            <section class="card" aria-labelledby="about-h">
+                <h2 id="about-h">About this visit</h2>
+                <p th:text="${guide.purpose != null} ? ${guide.purpose} : 'Not available'">Purpose</p>
+                <dl class="facts">
+                    <div><dt>Address</dt><dd th:text="${guide.institution.address != null} ? ${guide.institution.address} : 'Not available'">Address</dd></div>
+                    <div><dt>Contact</dt><dd th:text="${guide.institution.contact != null} ? ${guide.institution.contact} : 'Not available'">Contact</dd></div>
+                    <div><dt>Fees</dt><dd th:classappend="${guide.fees == null} ? 'unconfirmed'" th:text="${guide.fees != null} ? ${guide.fees} : 'Not confirmed — check with the institution'">Fees</dd></div>
+                    <div><dt>Appointment</dt><dd th:classappend="${guide.appointmentInfo == null} ? 'unconfirmed'" th:text="${guide.appointmentInfo != null} ? ${guide.appointmentInfo} : 'Not confirmed — check with the institution'">Appointment</dd></div>
+                    <div><dt>Timings</dt><dd th:classappend="${guide.timings == null} ? 'unconfirmed'" th:text="${guide.timings != null} ? ${guide.timings} : 'Not confirmed — check with the institution'">Timings</dd></div>
+                </dl>
+            </section>
+
+            <section class="card checklist" aria-labelledby="prep-h" data-checklist>
+                <div class="card-head">
+                    <h2 id="prep-h">Before you leave</h2>
+                    <p class="progress" data-progress aria-live="polite"></p>
+                </div>
+                <p class="hint">Tick items as you get them ready. Ticks stay only on this page and aren't saved.</p>
+
+                <h3>Documents to bring</h3>
+                <p class="empty" th:if="${#lists.isEmpty(guide.documents)}">Not available</p>
+                <ul class="checks" th:unless="${#lists.isEmpty(guide.documents)}">
+                    <li th:each="item, s : ${guide.documents}">
+                        <input type="checkbox" th:id="'doc-' + ${s.index}">
+                        <label th:for="'doc-' + ${s.index}" th:text="${item}">Document</label>
+                    </li>
+                </ul>
+
+                <h3>Prerequisites</h3>
+                <p class="empty" th:if="${#lists.isEmpty(guide.prerequisites)}">Not available</p>
+                <ul class="checks" th:unless="${#lists.isEmpty(guide.prerequisites)}">
+                    <li th:each="item, s : ${guide.prerequisites}">
+                        <input type="checkbox" th:id="'pre-' + ${s.index}">
+                        <label th:for="'pre-' + ${s.index}" th:text="${item}">Prerequisite</label>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="card" aria-labelledby="steps-h">
+                <h2 id="steps-h">Steps on the day</h2>
+                <p class="empty" th:if="${#lists.isEmpty(guide.steps)}">Not available</p>
+                <ol class="steps" th:unless="${#lists.isEmpty(guide.steps)}">
+                    <li th:each="item : ${guide.steps}" th:text="${item}">Step</li>
+                </ol>
+            </section>
+
+            <section class="card card-caution" aria-labelledby="mistakes-h">
+                <h2 id="mistakes-h">Common mistakes and important instructions</h2>
+                <p class="empty" th:if="${#lists.isEmpty(guide.commonMistakes)}">Not available</p>
+                <ul th:unless="${#lists.isEmpty(guide.commonMistakes)}">
+                    <li th:each="item : ${guide.commonMistakes}" th:text="${item}">Mistake</li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- Community: visually separate from requirements -->
+        <aside class="community" id="community" aria-labelledby="community-h">
+            <h2 id="community-h">Visitor experiences</h2>
+            <p class="community-note">Shared by visitors and reviewed by a moderator. These are personal experiences, <strong>not official requirements</strong>.</p>
+
+            <p class="empty" th:if="${#lists.isEmpty(experiences)}">No visitor experiences yet.</p>
+            <ul class="experiences">
+                <li th:each="c : ${experiences}" class="experience" th:classappend="'exp-' + ${#strings.toLowerCase(c.type.name())}">
+                    <p class="exp-meta">
+                        <span class="exp-type" th:text="${c.type.label}">Tip</span>
+                        <span th:text="'Visited ' + ${#temporals.format(c.visitDate, 'd MMM yyyy')}">Visited 1 Oct 2026</span>
+                    </p>
+                    <p th:text="${c.text}">Experience text</p>
+                    <p class="exp-by" th:text="'— ' + (${c.displayName != null} ? ${c.displayName} : 'Anonymous visitor')">— Anonymous visitor</p>
+                </li>
+            </ul>
+
+            <form class="contribute" th:action="@{/guides/{id}/contributions(id=${guide.id})}" th:object="${contributionForm}" method="post" novalidate>
+                <h3>Share your visit</h3>
+                <p class="hint">Your submission appears after a moderator reviews it.</p>
+
+                <fieldset>
+                    <legend>What are you sharing?</legend>
+                    <label class="radio" th:each="t : ${contributionTypes}">
+                        <input type="radio" th:field="*{type}" th:value="${t}">
+                        <span th:text="${t.label}">Tip</span>
+                    </label>
+                    <p class="field-error" th:if="${#fields.hasErrors('type')}" th:errors="*{type}">Error</p>
+                </fieldset>
+
+                <label for="text">What happened?</label>
+                <textarea id="text" th:field="*{text}" rows="4" maxlength="1000"
+                          th:classappend="${#fields.hasErrors('text')} ? 'invalid'"
+                          placeholder="For example: they also asked for a photocopy of…"></textarea>
+                <p class="field-error" th:if="${#fields.hasErrors('text')}" th:errors="*{text}">Error</p>
+
+                <label for="visitDate">Date of your visit</label>
+                <input type="date" id="visitDate" th:field="*{visitDate}" th:attr="max=${today}"
+                       th:classappend="${#fields.hasErrors('visitDate')} ? 'invalid'">
+                <p class="field-error" th:if="${#fields.hasErrors('visitDate')}" th:errors="*{visitDate}">Error</p>
+
+                <label for="displayName">Display name <span class="optional">(optional)</span></label>
+                <input type="text" id="displayName" th:field="*{displayName}" maxlength="60"
+                       th:classappend="${#fields.hasErrors('displayName')} ? 'invalid'">
+                <p class="field-error" th:if="${#fields.hasErrors('displayName')}" th:errors="*{displayName}">Error</p>
+
+                <button type="submit">Submit for review</button>
+            </form>
+        </aside>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/checklist.js}" defer></script>
+</body>
+</html>

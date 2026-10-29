@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Something went wrong')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="wrap narrow">
+    <h1>Something went wrong</h1>
+    <p th:text="${status != null} ? 'Error ' + ${status} + '. Please try again.' : 'Please try again.'">Error.</p>
+    <p><a th:href="@{/}">← Back to all guides</a></p>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Find a guide')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main class="wrap">
+    <section class="hero">
+        <h1>Know what to bring before you go.</h1>
+        <p class="lead">Documents, steps and recent visitor tips for offices, colleges, hospitals and banks, with a clear sign of how fresh the information is.</p>
+
+        <form class="search" th:action="@{/}" method="get" role="search">
+            <label for="q" class="visually-hidden">Search institutions, services or city</label>
+            <input id="q" name="q" type="search" th:value="${q}" placeholder="Try “passport”, “transcript” or “Chennai”">
+            <input type="hidden" name="category" th:if="${selectedCategory != null}" th:value="${selectedCategory.name()}">
+            <button type="submit">Search</button>
+        </form>
+
+        <nav class="chips" aria-label="Filter by category">
+            <a class="chip" th:href="@{/(q=${q})}" th:classappend="${selectedCategory == null} ? 'active'">All</a>
+            <a class="chip" th:each="c : ${categories}" th:href="@{/(q=${q}, category=${c.name()})}"
+               th:classappend="${selectedCategory == c} ? 'active'" th:text="${c.label}">Government</a>
+        </nav>
+    </section>
+
+    <section aria-live="polite">
+        <p class="result-count" th:text="${#lists.size(guides)} + (${#lists.size(guides) == 1} ? ' guide' : ' guides')">8 guides</p>
+
+        <p class="empty" th:if="${#lists.isEmpty(guides)}">
+            No guides match your search. Try a different word, or clear the category filter.
+        </p>
+
+        <ul class="results">
+            <li th:each="g : ${guides}" class="result-card">
+                <a th:href="@{/guides/{id}(id=${g.id})}" class="result-link">
+                    <span class="result-title" th:text="${g.title}">Fresh passport application</span>
+                    <span class="result-meta">
+                        <span th:text="${g.institution.name}">Passport Seva Kendra</span>
+                        <span aria-hidden="true">·</span>
+                        <span th:text="${g.institution.category.label}">Government</span>
+                        <span th:if="${g.institution.city}" th:text="'· ' + ${g.institution.city}">· Chennai</span>
+                    </span>
+                </a>
+                <span class="result-badges">
+                    <span th:with="f=${@freshnessCalculator.badgeFor(g.lastVerifiedAt)}" class="badge" th:classappend="'badge-' + ${f.cssClass}" th:text="${f.label}">Fresh</span>
+                    <span class="badge badge-flag" th:if="${g.flaggedOutdated}">Reported as possibly changed</span>
+                </span>
+            </li>
+        </ul>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

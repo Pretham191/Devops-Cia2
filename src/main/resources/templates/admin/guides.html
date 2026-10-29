@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('All guides')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<nav th:replace="~{admin/_nav :: nav}"></nav>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main class="wrap admin">
+    <h1>All guides</h1>
+    <p class="empty" th:if="${#lists.isEmpty(guides)}">No guides yet.</p>
+    <table th:unless="${#lists.isEmpty(guides)}">
+        <thead><tr><th>Guide</th><th>Institution</th><th>Status</th><th>Freshness</th><th>Action</th></tr></thead>
+        <tbody>
+        <tr th:each="g : ${guides}">
+            <td><a th:href="@{/guides/{id}(id=${g.id})}" th:text="${g.title}">Guide</a></td>
+            <td th:text="${g.institution.name}">Institution</td>
+            <td th:text="${g.verificationStatus.label}">Unverified</td>
+            <td>
+                <span th:with="f=${@freshnessCalculator.badgeFor(g.lastVerifiedAt)}" class="badge" th:classappend="'badge-' + ${f.cssClass}" th:text="${f.label}">Fresh</span>
+                <span class="badge badge-flag" th:if="${g.flaggedOutdated}">Flagged</span>
+            </td>
+            <td class="actions">
+                <a class="button secondary" th:href="@{/admin/guides/{id}/edit(id=${g.id})}">Edit</a>
+                <form th:action="@{/admin/guides/{id}/verify(id=${g.id})}" method="post" class="inline">
+                    <button type="submit">Mark verified today</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

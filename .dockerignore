@@ -1,0 +1,4 @@
+# Send only the built jar to the Docker daemon: smaller build context,
+# no source, secrets, .git or IDE files can leak into the image.
+*
+!target/app.jar

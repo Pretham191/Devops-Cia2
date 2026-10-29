@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('New institution')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<nav th:replace="~{admin/_nav :: nav}"></nav>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main class="wrap narrow admin">
+    <h1>New institution</h1>
+    <form class="card form" th:action="@{/admin/institutions}" th:object="${institutionForm}" method="post">
+        <label for="name">Name</label>
+        <input id="name" type="text" th:field="*{name}" maxlength="200">
+        <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Error</p>
+
+        <label for="category">Category</label>
+        <select id="category" th:field="*{category}">
+            <option value="">Choose…</option>
+            <option th:each="c : ${categories}" th:value="${c}" th:text="${c.label}">Government</option>
+        </select>
+        <p class="field-error" th:if="${#fields.hasErrors('category')}" th:errors="*{category}">Error</p>
+
+        <label for="city">City</label>
+        <input id="city" type="text" th:field="*{city}" maxlength="100">
+
+        <label for="address">Address <span class="optional">(optional)</span></label>
+        <input id="address" type="text" th:field="*{address}" maxlength="500">
+
+        <label for="contact">Contact <span class="optional">(optional)</span></label>
+        <input id="contact" type="text" th:field="*{contact}" maxlength="300">
+
+        <label for="description">Description <span class="optional">(optional)</span></label>
+        <textarea id="description" th:field="*{description}" rows="3"></textarea>
+
+        <button type="submit">Create institution</button>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

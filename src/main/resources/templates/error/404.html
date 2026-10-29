@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Not found')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="wrap narrow">
+    <h1>Page not found</h1>
+    <p th:text="${detail != null} ? ${detail} : 'The page you were looking for does not exist.'">Not found.</p>
+    <p><a th:href="@{/}">← Back to all guides</a></p>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

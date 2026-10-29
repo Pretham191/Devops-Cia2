@@ -1,0 +1,18 @@
+# Public entry point: AKS creates an Azure Load Balancer with a public IP.
+apiVersion: v1
+kind: Service
+metadata:
+  name: beforeyougo
+  namespace: beforeyougo
+  labels:
+    app: beforeyougo
+spec:
+  type: LoadBalancer
+  selector:
+    app: beforeyougo       # must match the Deployment's pod labels
+  # Admin login sessions live in one pod's memory, so keep each visitor on the same pod.
+  sessionAffinity: ClientIP
+  ports:
+    - name: http
+      port: 80             # browser uses http://<EXTERNAL-IP>/
+      targetPort: 8080     # Spring Boot inside the container

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Admin dashboard')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<nav th:replace="~{admin/_nav :: nav}"></nav>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main class="wrap admin">
+    <h1>Dashboard</h1>
+
+    <ul class="stats">
+        <li><span class="stat-num" th:text="${guideCount}">8</span> guides</li>
+        <li><span class="stat-num" th:text="${institutionCount}">5</span> institutions</li>
+        <li><span class="stat-num" th:text="${pendingCount}">2</span> pending contributions</li>
+        <li><span class="stat-num" th:text="${#lists.size(needsReview)}">3</span> guides need review</li>
+    </ul>
+
+    <section class="card" aria-labelledby="queue-h">
+        <h2 id="queue-h">Moderation queue</h2>
+        <p class="empty" th:if="${#lists.isEmpty(pending)}">Nothing waiting for review.</p>
+        <table th:unless="${#lists.isEmpty(pending)}">
+            <thead><tr><th>Guide</th><th>Type</th><th>Visit date</th><th>Contribution</th><th>Action</th></tr></thead>
+            <tbody>
+            <tr th:each="c : ${pending}">
+                <td><a th:href="@{/guides/{id}(id=${c.guide.id})}" th:text="${c.guide.title}">Guide</a></td>
+                <td th:text="${c.type.label}">Tip</td>
+                <td th:text="${#temporals.format(c.visitDate, 'd MMM yyyy')}">1 Oct 2026</td>
+                <td>
+                    <span th:text="${c.text}">Text</span>
+                    <span class="muted" th:text="'— ' + (${c.displayName != null} ? ${c.displayName} : 'Anonymous')">— Anonymous</span>
+                    <span class="muted" th:if="${c.type.flagsGuide()}">(approving flags the guide)</span>
+                </td>
+                <td class="actions">
+                    <form th:action="@{/admin/contributions/{id}/approve(id=${c.id})}" method="post" class="inline">
+                        <button type="submit">Approve</button>
+                    </form>
+                    <form th:action="@{/admin/contributions/{id}/reject(id=${c.id})}" method="post" class="inline">
+                        <button type="submit" class="secondary">Reject</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card" aria-labelledby="review-h">
+        <h2 id="review-h">Needs review</h2>
+        <p class="hint">Guides that are possibly outdated by date, or flagged by an approved visitor report.</p>
+        <p class="empty" th:if="${#lists.isEmpty(needsReview)}">All guides are up to date.</p>
+        <table th:unless="${#lists.isEmpty(needsReview)}">
+            <thead><tr><th>Guide</th><th>Last verified</th><th>Freshness</th><th>Action</th></tr></thead>
+            <tbody>
+            <tr th:each="g : ${needsReview}">
+                <td>
+                    <a th:href="@{/guides/{id}(id=${g.id})}" th:text="${g.title}">Guide</a>
+                    <span class="muted" th:text="${g.institution.name}">Institution</span>
+                </td>
+                <td th:text="${g.lastVerifiedAt != null} ? ${#temporals.format(g.lastVerifiedAt, 'd MMM yyyy')} : 'Never'">—</td>
+                <td>
+                    <span th:with="f=${@freshnessCalculator.badgeFor(g.lastVerifiedAt)}" class="badge" th:classappend="'badge-' + ${f.cssClass}" th:text="${f.label}">Fresh</span>
+                    <span class="badge badge-flag" th:if="${g.flaggedOutdated}">Reported as possibly changed</span>
+                </td>
+                <td class="actions">
+                    <a class="button secondary" th:href="@{/admin/guides/{id}/edit(id=${g.id})}">Edit</a>
+                    <form th:action="@{/admin/guides/{id}/verify(id=${g.id})}" method="post" class="inline">
+                        <button type="submit">Mark verified today</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' · BeforeYouGo'">BeforeYouGo</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<header th:fragment="header" class="site-header">
+    <div class="wrap header-inner">
+        <a class="brand" th:href="@{/}">Before<span>You</span>Go</a>
+        <nav class="header-nav" aria-label="Main">
+            <a th:href="@{/}">Find a guide</a>
+            <a th:href="@{/admin}">Admin</a>
+        </nav>
+    </div>
+    <div class="sample-notice" role="note">
+        <div class="wrap">Sample data for demonstration — not official guidance.</div>
+    </div>
+</header>
+
+<div th:fragment="flash" class="wrap">
+    <p class="flash flash-ok" role="status" th:if="${message}" th:text="${message}">Saved.</p>
+    <p class="flash flash-error" role="alert" th:if="${error}" th:text="${error}">Something went wrong.</p>
+</div>
+
+<span th:fragment="badge(freshness)" class="badge" th:classappend="'badge-' + ${freshness.cssClass}"
+      th:text="${freshness.label}">Fresh</span>
+
+<footer th:fragment="footer" class="site-footer">
+    <div class="wrap">
+        <p>BeforeYouGo helps you prepare. It does not replace the institution's own instructions — always confirm with them.</p>
+        <p class="build" th:text="'BeforeYouGo · build ' + ${@buildInfo.version}">BeforeYouGo · build local-dev</p>
+    </div>
+</footer>
+
+</body>
+</html>

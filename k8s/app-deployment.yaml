@@ -1,0 +1,91 @@
+# BeforeYouGo app. Rendered by Ansible (ansible/deploy.yml), which fills in
+# the image tag, build version and replica count for each pipeline run.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beforeyougo
+  namespace: beforeyougo
+  labels:
+    app: beforeyougo
+spec:
+  replicas: {{ app_replicas }}
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0     # never drop below the desired count during an update
+      maxSurge: 1           # start one new pod, wait until ready, then retire an old one
+  selector:
+    matchLabels:
+      app: beforeyougo
+  template:
+    metadata:
+      labels:
+        app: beforeyougo
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: app
+          image: "{{ app_image }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+            - name: APP_VERSION
+              value: "{{ app_version }}"
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/beforeyougo
+            - name: SPRING_DATASOURCE_USERNAME
+              value: beforeyougo
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: beforeyougo-secrets
+                  key: db-password
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: beforeyougo-secrets
+                  key: admin-username
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: beforeyougo-secrets
+                  key: admin-password
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          # Spring Boot can take ~30-60s on a small node: the startup probe gives it
+          # up to 3 minutes before liveness checks begin.
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 768Mi
