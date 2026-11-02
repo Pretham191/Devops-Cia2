@@ -42,7 +42,21 @@ pipeline {
                 echo "Building commit ${env.GIT_SHORT} as image tag ${env.IMAGE_TAG}"
             }
         }
-
+        stage('Secret Scan') {
+            steps {
+                sh '''
+                docker run --rm --user $(id -u):$(id -g) -v "${WORKSPACE}:/repo" \
+                ghcr.io/gitleaks/gitleaks:latest \
+                git /repo --config=/repo/.gitleaks.toml --redact -v \
+                --report-path=/repo/gitleaks-report.json --report-format=json
+                '''
+            }
+            post {
+                always {
+                archiveArtifacts artifacts: 'gitleaks-report.json', allowEmptyArchive: true
+                }
+            }
+        }
         stage('Compile') {
             steps {
                 sh 'mvn -B -ntp clean compile'

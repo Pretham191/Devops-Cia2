@@ -1,0 +1,13 @@
+title = "BeforeYouGo Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore tests, documentation, and example files"
+paths = [
+    '''^README\.md$''',
+    '''^src/test/.*''',
+    '''^\.env\.example$''',
+    '''gitleaks-report\..*'''
+]

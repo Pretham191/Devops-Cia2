@@ -28,3 +28,4 @@ kubeconfig
 .kube/
 .azure/
 credentials*.json
+gitleaks-report.json
